@@ -1,59 +1,86 @@
 <template>
-    <h1>Agenda</h1>
+    <h1>{{ titulo }}</h1>
     <div class="wrapper">
-        <ul>
-            <form-add @adiciona-contato="addContact"></form-add>
-            <contatinho-listado @aumenta-idade="aumentaPropsIdade" 
-            v-for="contato in contatos" :key="contato.id" 
-            :id="contato.id" :nome="contato.nome" :idade="contato.idade" @deleta="deleta"></contatinho-listado>
+        <form-add @adiciona-contato="addContact" v-on:clica="fetchFromDummy"></form-add>
+        <ul v-if="contatos.length > 0">
+            <contato-listado 
+                v-on:aumenta-idade="aumentaPropsIdade" 
+                v-for="contato in contatos"
+                v-bind:key="contato.id" 
+                v-bind:id="contato.id" v-bind:nome="contato.nome" v-bind:idade="contato.idade" 
+                @deleta="deleta">
+            </contato-listado>
         </ul>
+        <div v-else> 
+            <p>Ainda não há contatos em sua lista </p>
+        </div>
     </div>  
 </template>
 
 <script>
+    export default {
+        data: function(){
+            return{
+                titulo: "Agenda",
+                idFetch : 1,
+                contatos: [
+                    {
+                        id: 1,
+                        nome: 'Fernanda',
+                        idade: 31 
+                    },
+                    {
+                        id: 2,
+                        nome: 'Roberto',
+                        idade: 35 
 
+                    },
+                    {
+                        id: 3,
+                        nome: 'gonçalves',
+                        idade: 58 
 
-export default {
-    data(){
-        return{
-            contatos: [{
-                    id: 1,
-                    nome: 'rodrigo',
-                    idade: 31 
-                },
-                {
-                    id: 2,
-                    nome: 'robertoo',
-                    idade: 35 
-
-                },
-                {
-                    id: 3,
-                    nome: 'alerto',
-                    idade: 58 
-
-                }
-            ]
-        }
-    },
-    methods:{
-        aumentaPropsIdade(id){
-
-            const contato = this.contatos.find(idContato => idContato.id === id)
-            contato.idade++
+                    }
+                ]
+            }
         },
-        addContact(nome, idade){
-            this.contatos.push({
-                id: Math.random() * 10,
-                nome: nome,
-                idade: parseInt(idade)
-            })
-        },
-        deleta(id){
-            this.contatos = this.contatos.filter(e => e.id !== id)
+        methods:{
+            aumentaPropsIdade(id){
+
+                const contato = this.contatos.find(idContato => idContato.id === id)
+                contato.idade++
+            },
+            addContact(nome, idade){
+                this.contatos.push({
+                    id: Math.random() * 10,
+                    nome: nome,
+                    idade: parseInt(idade)
+                })
+            },
+            deleta(id){
+                this.contatos = this.contatos.filter(e => e.id !== id)
+            },
+            fetchFromDummy(){
+                    const intervalo = setInterval(()=>{
+                        fetch('https://jsonplaceholder.typicode.com/users/'+this.idFetch)
+                            .then(response => response.json())
+                            .then(e => {
+                                    
+                                this.contatos.push({
+                                    id: e.id + parseInt(Math.random() * 10),
+                                    nome: e.name,
+                                    idade: e.id + parseInt(Math.random() * 10)
+                                })
+                                if(this.idFetch < 10) this.idFetch++
+                                else{
+                                    clearInterval(intervalo)
+                                }
+                            })
+                    }, 2000)
+                
+            }
         }
     }
-}
 </script>
 
 <style scoped>
@@ -63,10 +90,8 @@ export default {
     }
     ul{
         text-align: center;
-        /* margin-left: 40%; */
         width: 100%;
         display: flex;
-        justify-content: center;
         flex-wrap: wrap;
     }
     .wrapper{
